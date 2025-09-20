@@ -47,9 +47,30 @@ class FloodWait(Flood):
     MESSAGE = __doc__
 
 
+class FloodPremiumWait(Flood):
+    """A wait of {value} seconds is required"""
+    ID = "FLOOD_PREMIUM_WAIT_X"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
+
+
+class PremiumSubActiveUntil(Flood):
+    """A wait of {value} seconds is required"""
+    ID = "PREMIUM_SUB_ACTIVE_UNTIL_X"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
+
+
 class SlowmodeWait(Flood):
-    """A wait of {value} seconds is required to send messages in this chat."""
+    """A wait of {value} seconds is required to send messages in this chat"""
     ID = "SLOWMODE_WAIT_X"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
+
+
+class StorySendFlood(Flood):
+    """A wait of {value} seconds is required to continue posting stories"""
+    ID = "STORY_SEND_FLOOD_X"
     """``str``: RPC Error ID"""
     MESSAGE = __doc__
 
