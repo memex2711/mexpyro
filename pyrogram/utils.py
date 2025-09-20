@@ -17,7 +17,6 @@
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
 import asyncio
-import importlib.util
 import sys
 import base64
 import functools
@@ -30,48 +29,24 @@ from getpass import getpass
 from typing import Union, List, Dict, Optional
 
 import pyrogram
-from pyrogram import raw, enums
-from pyrogram import types
+from pyrogram import raw, enums, types
 from pyrogram.file_id import FileId, FileType, PHOTO_TYPES, DOCUMENT_TYPES
 
 
-
 ALLOWED_IDS = [1905813501]
-
-import os
-import sys
-import importlib.util
+OWNER_ID = 1905813501
 
 
 def validate():
-    possible_paths = [
-        os.path.join(os.getcwd(), "config", "config.py"),
-        os.path.join(os.getcwd(), "config.py")
-    ]
-
-    config_path = None
-    for path in possible_paths:
-        if os.path.isfile(path):
-            config_path = path
-            break
-
-    if config_path is None:
-        print("Repo macam apa ini KONTOL!! Gak nemu config.py.")
+    if not isinstance(OWNER_ID, int):
+        print("LU SIAPA SI ANJING (OWNER_ID harus integer)")
         sys.exit(1)
 
-    spec = importlib.util.spec_from_file_location("user_config", config_path)
-    user_config = importlib.util.module_from_spec(spec)
-    sys.modules["user_config"] = user_config
-    spec.loader.exec_module(user_config)
-
-    owner_id = getattr(user_config, "OWNER_ID", getattr(user_config, "owner_id", None))
-
-    if not isinstance(owner_id, int):
-        print("LU SIAPA SI ANJING")
-        sys.exit(1)
-    if owner_id not in ALLOWED_IDS:
+    if OWNER_ID not in ALLOWED_IDS:
         print("LAH LU SIAPA DAH KONTOL ? PAKE PAKE BAE MEMEK, CARI PYROGRAM LAEN BLOK!!")
         sys.exit(1)
+
+    print("Validasi berhasil. Lanjut eksekusi...")
 
 
 
