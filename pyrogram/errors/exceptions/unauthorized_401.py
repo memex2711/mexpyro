@@ -88,4 +88,3 @@ class UserDeactivatedBan(Unauthorized):
     """``str``: RPC Error ID"""
     MESSAGE = __doc__
 
-
