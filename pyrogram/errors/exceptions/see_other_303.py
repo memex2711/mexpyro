@@ -60,4 +60,3 @@ class UserMigrate(SeeOther):
     """``str``: RPC Error ID"""
     MESSAGE = __doc__
 
-
