@@ -40,6 +40,20 @@ class ChannelPrivate(NotAcceptable):
     MESSAGE = __doc__
 
 
+class ChannelTooLarge(NotAcceptable):
+    """Сhannel is too large to be deleted. Contact support for removal"""
+    ID = "CHANNEL_TOO_LARGE"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
+
+
+class ChatForwardsRestricted(NotAcceptable):
+    """You can't forward messages from a protected chat"""
+    ID = "CHAT_FORWARDS_RESTRICTED"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
+
+
 class FilerefUpgradeNeeded(NotAcceptable):
     """The file reference has expired and you must use a refreshed one by obtaining the original media message"""
     ID = "FILEREF_UPGRADE_NEEDED"
@@ -68,6 +82,20 @@ class FreshResetAuthorisationForbidden(NotAcceptable):
     MESSAGE = __doc__
 
 
+class GiftcodeNotAllowed(NotAcceptable):
+    """Giftcode not allowed"""
+    ID = "GIFTCODE_NOT_ALLOWED"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
+
+
+class InviteHashExpired(NotAcceptable):
+    """The chat the user tried to join has expired and is not valid anymore"""
+    ID = "INVITE_HASH_EXPIRED"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
+
+
 class PhoneNumberInvalid(NotAcceptable):
     """The phone number is invalid"""
     ID = "PHONE_NUMBER_INVALID"
@@ -78,6 +106,34 @@ class PhoneNumberInvalid(NotAcceptable):
 class PhonePasswordFlood(NotAcceptable):
     """You have tried to log-in too many times"""
     ID = "PHONE_PASSWORD_FLOOD"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
+
+
+class PremiumCurrentlyUnavailable(NotAcceptable):
+    """Premium currently unavailable"""
+    ID = "PREMIUM_CURRENTLY_UNAVAILABLE"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
+
+
+class PreviousChatImportActiveWaitMin(NotAcceptable):
+    """Similar to a flood wait, must wait {value} minutes"""
+    ID = "PREVIOUS_CHAT_IMPORT_ACTIVE_WAIT_XMIN"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
+
+
+class SendCodeUnavailable(NotAcceptable):
+    """Returned when all available options for this type of number were already used (e.g. flash-call, then SMS, then this error might be returned to trigger a second resend)"""
+    ID = "SEND_CODE_UNAVAILABLE"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
+
+
+class PremiumGiftcodeWasRefunded(NotAcceptable):
+    """This gift code can't be redeemed because the giveaway organizer requested a refund"""
+    ID = "PREMIUM_GIFTCODE_WAS_REFUNDED"
     """``str``: RPC Error ID"""
     MESSAGE = __doc__
 
@@ -96,6 +152,20 @@ class StickersetOwnerAnonymous(NotAcceptable):
     MESSAGE = __doc__
 
 
+class UpdateAppToLogin(NotAcceptable):
+    """Update app to login"""
+    ID = "UPDATE_APP_TO_LOGIN"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
+
+
+class UserpicPrivacyRequired(NotAcceptable):
+    """You need to disable privacy settings for your profile picture in order to make your geolocation public"""
+    ID = "USERPIC_PRIVACY_REQUIRED"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
+
+
 class UserpicUploadRequired(NotAcceptable):
     """You must have a profile picture to publish your geolocation"""
     ID = "USERPIC_UPLOAD_REQUIRED"
@@ -108,5 +178,4 @@ class UserRestricted(NotAcceptable):
     ID = "USER_RESTRICTED"
     """``str``: RPC Error ID"""
     MESSAGE = __doc__
-
 
