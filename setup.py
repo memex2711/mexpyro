@@ -1,24 +1,23 @@
-#  Pyrogram - Telegram MTProto API Client Library for Python
-#  Copyright (C) 2017-present Dan <https://github.com/delivrance>
+#  MexPyro - Custom fork of Pyrogram (Telegram MTProto API Client Library)
+#  Copyright (C) 2025 Fajar Ikhsan
 #
-#  This file is part of Pyrogram.
+#  This file is part of MexPyro.
 #
-#  Pyrogram is free software: you can redistribute it and/or modify
+#  MexPyro is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU Lesser General Public License as published
 #  by the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  Pyrogram is distributed in the hope that it will be useful,
+#  MexPyro is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
+#  along with MexPyro.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
 from sys import argv
-
 from setuptools import setup, find_packages
 
 from compiler.api import compiler as api_compiler
@@ -28,7 +27,7 @@ with open("requirements.txt", encoding="utf-8") as r:
     requires = [i.strip() for i in r]
 
 with open("pyrogram/__init__.py", encoding="utf-8") as f:
-    version = re.findall(r"__version__ = \"(.+)\"", f.read())[0]
+    version = re.findall(r'__version__ = "(.+)"', f.read())[0]
 
 with open("README.md", encoding="utf-8") as f:
     readme = f.read()
@@ -38,15 +37,15 @@ if len(argv) > 1 and argv[1] in ["bdist_wheel", "install", "develop"]:
     errors_compiler.start()
 
 setup(
-    name="Pyrogram",
+    name="mexpyro",  # <--- ganti supaya beda dari PyPI resmi
     version=version,
-    description="Elegant, modern and asynchronous Telegram MTProto API framework in Python for users and bots",
+    description="MexPyro: Custom fork of Pyrogram with extra features & patches",
     long_description=readme,
     long_description_content_type="text/markdown",
-    url="https://github.com/pyrogram",
-    download_url="https://github.com/pyrogram/pyrogram/releases/latest",
-    author="Dan",
-    author_email="dan@pyrogram.org",
+    url="https://github.com/memex2711/mexpyro",
+    download_url="https://github.com/memex2711/mexpyro/releases/latest",
+    author="Fajar Ikhsan",
+    author_email="",
     license="LGPLv3",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -71,11 +70,11 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: Libraries :: Application Frameworks"
     ],
-    keywords="telegram chat messenger mtproto api client library python",
+    keywords="telegram chat messenger mtproto api client library python mexpyro fork",
     project_urls={
-        "Tracker": "https://github.com/pyrogram/pyrogram/issues",
+        "Tracker": "https://github.com/memex2711/mexpyro/issues",
         "Community": "https://t.me/pyrogram",
-        "Source": "https://github.com/pyrogram/pyrogram",
+        "Source": "https://github.com/memex2711/mexpyro",
         "Documentation": "https://docs.pyrogram.org",
     },
     python_requires="~=3.7",
