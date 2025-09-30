@@ -17,6 +17,7 @@
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
 import asyncio
+import importlib.util
 import sys
 import base64
 import functools
@@ -27,27 +28,20 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime, timezone
 from getpass import getpass
 from typing import Union, List, Dict, Optional
+from types import SimpleNamespace
 
 import pyrogram
-from pyrogram import raw, enums, types
+from pyrogram import raw, enums
+from pyrogram import types
 from pyrogram.file_id import FileId, FileType, PHOTO_TYPES, DOCUMENT_TYPES
 
-
-ALLOWED_IDS = [1905813501]
-OWNER_ID = 1905813501
-
-
-def validate():
-    if not isinstance(OWNER_ID, int):
-        print("LU SIAPA SI ANJING (OWNER_ID harus integer)")
-        sys.exit(1)
-
-    if OWNER_ID not in ALLOWED_IDS:
-        print("LAH LU SIAPA DAH KONTOL ? PAKE PAKE BAE MEMEK, CARI PYROGRAM LAEN BLOK!!")
-        sys.exit(1)
-
-    print("Validasi berhasil. Lanjut eksekusi...")
-
+PyromodConfig = SimpleNamespace(
+    timeout_handler=None,
+    stopped_handler=None,
+    throw_exceptions=True,
+    unallowed_click_alert=True,
+    unallowed_click_alert_text=("[pyromod] You're not expected to click this button."),
+)
 
 
 async def ainput(prompt: str = "", *, hide: bool = False):
@@ -312,15 +306,15 @@ def get_input_peer_id(peer: raw.base.InputPeer) -> Optional[int]:
     return None
 
 
-def get_peer_id(peer: raw.base.Peer) -> int:
+def get_peer_id(peer: Union[raw.base.Peer, raw.base.InputPeer, raw.base.RequestedPeer]) -> int:
     """Get the non-raw peer id from a Peer object"""
-    if isinstance(peer, raw.types.PeerUser):
+    if isinstance(peer, (raw.types.PeerUser, raw.types.InputPeerUser, raw.types.RequestedPeerUser)):
         return peer.user_id
 
-    if isinstance(peer, raw.types.PeerChat):
+    if isinstance(peer, (raw.types.PeerChat, raw.types.InputPeerChat, raw.types.RequestedPeerChat)):
         return -peer.chat_id
 
-    if isinstance(peer, raw.types.PeerChannel):
+    if isinstance(peer, (raw.types.PeerChannel, raw.types.InputPeerChannel, raw.types.RequestedPeerChannel)):
         return MAX_CHANNEL_ID - peer.channel_id
 
     raise ValueError(f"Peer type invalid: {peer}")
