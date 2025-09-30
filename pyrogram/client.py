@@ -34,6 +34,7 @@ from mimetypes import MimeTypes
 from pathlib import Path
 from typing import Union, List, Optional, Callable, AsyncGenerator
 
+import builtins
 import pyrogram
 from pyrogram import __version__, __license__
 from pyrogram import enums
@@ -46,11 +47,15 @@ from pyrogram.errors import (
     VolumeLocNotFound, ChannelPrivate,
     BadRequest, AuthBytesInvalid
 )
+from .connection import Connection
+from .connection.transport import TCP, TCPAbridged
 from pyrogram.handlers.handler import Handler
 from pyrogram.methods import Methods
 from pyrogram.session import Auth, Session
 from pyrogram.storage import FileStorage, MemoryStorage
-from pyrogram.types import User, TermsOfService
+from pyrogram.types import User, TermsOfService, Message, CallbackQuery
+from pyrogram.types.pyromod import ListenerTypes
+from typing import Optional, Union    
 from pyrogram.utils import ainput
 from .dispatcher import Dispatcher
 from .file_id import FileId, FileType, ThumbnailSource
@@ -225,7 +230,10 @@ class Client(Methods):
         takeout: bool = None,
         sleep_threshold: int = Session.SLEEP_THRESHOLD,
         hide_password: bool = False,
-        max_concurrent_transmissions: int = MAX_CONCURRENT_TRANSMISSIONS
+        max_concurrent_transmissions: int = MAX_CONCURRENT_TRANSMISSIONS,
+        connection_factory: builtins.type[Connection] = Connection,
+        protocol_factory: builtins.type[TCP] = TCPAbridged,
+        message_cache_size: int = 1000,
     ):
         super().__init__()
 
@@ -254,6 +262,9 @@ class Client(Methods):
         self.sleep_threshold = sleep_threshold
         self.hide_password = hide_password
         self.max_concurrent_transmissions = max_concurrent_transmissions
+        self.connection_factory = connection_factory
+        self.protocol_factory = protocol_factory
+        self.message_cache_size = message_cache_size
 
         self.executor = ThreadPoolExecutor(self.workers, thread_name_prefix="Handler")
 
@@ -287,7 +298,7 @@ class Client(Methods):
 
         self.me: Optional[User] = None
 
-        self.message_cache = Cache(10000)
+        self.message_cache = Cache(message_cache_size)
 
         # Sometimes, for some reason, the server will stop sending updates and will only respond to pings.
         # This watchdog will invoke updates.GetState in order to wake up the server and enable it sending updates again
@@ -295,6 +306,8 @@ class Client(Methods):
         self.updates_watchdog_task = None
         self.updates_watchdog_event = asyncio.Event()
         self.last_update_time = datetime.now()
+
+        self.listeners = {listener_type: [] for listener_type in ListenerTypes}
 
         self.loop = asyncio.get_event_loop()
 
@@ -306,6 +319,7 @@ class Client(Methods):
             self.stop()
         except ConnectionError:
             pass
+
 
     async def __aenter__(self):
         return await self.start()
@@ -484,6 +498,93 @@ class Client(Methods):
 
         self.parse_mode = parse_mode
 
+    def get_name(self, message):
+        if message.reply_to_message:
+            if message.reply_to_message.sender_chat:
+                return None
+            first_name = message.reply_to_message.from_user.first_name or ""
+            last_name = message.reply_to_message.from_user.last_name or ""
+            full_name = f"{first_name} {last_name}".strip()
+            return full_name if full_name else None
+        else:
+            input_text = message.text.split(None, 1)
+            if len(input_text) <= 1:
+                first_name = message.from_user.first_name or ""
+                last_name = message.from_user.last_name or ""
+                full_name = f"{first_name} {last_name}".strip()
+                return full_name if full_name else None
+            return input_text[1].strip()
+
+    async def get_mention(self, message):
+        if message.reply_to_message:
+            if message.reply_to_message.sender_chat:
+                return None
+            first_name = message.reply_to_message.from_user.first_name or ""
+            last_name = message.reply_to_message.from_user.last_name or ""
+            full_name = f"{first_name} {last_name}".strip()
+            user_id = message.reply_to_message.from_user.id
+            mention = f'<a href="tg://user?id={user_id}">{full_name}</a>'
+            return mention
+        else:
+            if message.entities:
+                for entity in message.entities:
+                    if entity.type in ["mention", "text_mention"]:
+                        if entity.type == "mention":
+                            mention = message.text[
+                                entity.offset : entity.offset + entity.length
+                            ]
+                            return mention
+                        elif entity.type == "text_mention" and entity.user:
+                            full_name = f"{entity.user.first_name} {entity.user.last_name or ''}".strip()
+                            mention = f'<a href="tg://user?id={entity.user.id}">{full_name}</a>'
+                            return mention
+            first_name = message.from_user.first_name or ""
+            last_name = message.from_user.last_name or ""
+            full_name = f"{first_name} {last_name}".strip()
+            mention = f'<a href="tg://user?id={message.from_user.id}">{full_name}</a>'
+        return mention
+
+    async def edora(
+        self,
+        message: Union[Message, CallbackQuery],
+        text: str = "",
+        delete: bool = False,
+        answer: bool = True,
+        answer_text: str = None,
+        answer_alert: bool = False,
+        **kwargs
+    ) -> Optional[Message]:
+        if isinstance(message, CallbackQuery):
+            if answer and (answer_text or answer_alert):
+                try:
+                    await message.answer(
+                        answer_text or f"Hi {self.get_name(message.message)} ..",
+                        show_alert=answer_alert
+                    )
+                except Exception:
+                    pass
+            message = message.message
+
+        try:
+            if (message.from_user and message.from_user.is_self) or getattr(message, "outgoing", False):
+                sent = await message.edit_text(text, **kwargs)
+            else:
+                target = message.reply_to_message or message
+                sent = await target.reply_text(text, **kwargs)
+        except Exception:
+            target = message.reply_to_message or message
+            sent = await target.reply_text(text, **kwargs)
+
+        if delete:
+            try:
+                await sent.delete()
+                return None
+            except Exception:
+                pass
+
+        return sent
+
+
     async def fetch_peers(self, peers: List[Union[raw.types.User, raw.types.Chat, raw.types.Channel]]) -> bool:
         is_min = False
         parsed_peers = []
@@ -531,7 +632,7 @@ class Client(Methods):
         await self.storage.update_peers(parsed_peers)
 
         return is_min
-
+    
     async def handle_updates(self, updates):
         self.last_update_time = datetime.now()
 
@@ -546,11 +647,9 @@ class Client(Methods):
 
             for update in updates.updates:
                 channel_id = getattr(
-                    getattr(
-                        getattr(
-                            update, "message", None
-                        ), "peer_id", None
-                    ), "channel_id", None
+                    getattr(getattr(update, "message", None), "peer_id", None),
+                    "channel_id",
+                    None,
                 ) or getattr(update, "channel_id", None)
 
                 pts = getattr(update, "pts", None)
@@ -566,15 +665,19 @@ class Client(Methods):
                         try:
                             diff = await self.invoke(
                                 raw.functions.updates.GetChannelDifference(
-                                    channel=await self.resolve_peer(utils.get_channel_id(channel_id)),
+                                    channel=await self.resolve_peer(
+                                        utils.get_channel_id(channel_id)
+                                    ),
                                     filter=raw.types.ChannelMessagesFilter(
-                                        ranges=[raw.types.MessageRange(
-                                            min_id=update.message.id,
-                                            max_id=update.message.id
-                                        )]
+                                        ranges=[
+                                            raw.types.MessageRange(
+                                                min_id=update.message.id,
+                                                max_id=update.message.id,
+                                            )
+                                        ]
                                     ),
                                     pts=pts - pts_count,
-                                    limit=pts
+                                    limit=pts,
                                 )
                             )
                         except ChannelPrivate:
@@ -588,9 +691,7 @@ class Client(Methods):
         elif isinstance(updates, (raw.types.UpdateShortMessage, raw.types.UpdateShortChatMessage)):
             diff = await self.invoke(
                 raw.functions.updates.GetDifference(
-                    pts=updates.pts - updates.pts_count,
-                    date=updates.date,
-                    qts=-1
+                    pts=updates.pts - updates.pts_count, date=updates.date, qts=-1
                 )
             )
 
@@ -599,14 +700,13 @@ class Client(Methods):
                     raw.types.UpdateNewMessage(
                         message=diff.new_messages[0],
                         pts=updates.pts,
-                        pts_count=updates.pts_count
+                        pts_count=updates.pts_count,
                     ),
                     {u.id: u for u in diff.users},
-                    {c.id: c for c in diff.chats}
+                    {c.id: c for c in diff.chats},
                 ))
-            else:
-                if diff.other_updates:  # The other_updates list can be empty
-                    self.dispatcher.updates_queue.put_nowait((diff.other_updates[0], {}, {}))
+            elif diff.other_updates:  # The other_updates list can be empty
+                self.dispatcher.updates_queue.put_nowait((diff.other_updates[0], {}, {}))
         elif isinstance(updates, raw.types.UpdateShort):
             self.dispatcher.updates_queue.put_nowait((updates.update, {}, {}))
         elif isinstance(updates, raw.types.UpdatesTooLong):
@@ -793,6 +893,9 @@ class Client(Methods):
                 os.remove(temp_file_path)
 
             if isinstance(e, asyncio.CancelledError):
+                raise e
+            
+            if isinstance(e, pyrogram.errors.FloodWait):
                 raise e
 
             return None
