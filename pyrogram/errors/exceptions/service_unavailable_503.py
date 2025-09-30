@@ -46,4 +46,3 @@ class Timedout(ServiceUnavailable):
     """``str``: RPC Error ID"""
     MESSAGE = __doc__
 
-
