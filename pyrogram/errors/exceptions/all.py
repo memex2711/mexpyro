@@ -78,6 +78,7 @@ exceptions = {
         "2FA_CONFIRM_WAIT_X": "TwoFaConfirmWait",
         "FLOOD_TEST_PHONE_WAIT_X": "FloodTestPhoneWait",
         "FLOOD_WAIT_X": "FloodWait",
+        "FLOOD_PREMIUM_WAIT_X": "FloodPremiumWait",
         "SLOWMODE_WAIT_X": "SlowmodeWait",
         "TAKEOUT_INIT_DELAY_X": "TakeoutInitDelay",
     },
