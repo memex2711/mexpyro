@@ -299,6 +299,13 @@ class StoreInvalidScalarType(InternalServerError):
     MESSAGE = __doc__
 
 
+class Timeout(InternalServerError):
+    """A timeout occurred while fetching data from the worker"""
+    ID = "TIMEOUT"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
+
+
 class UnknownMethod(InternalServerError):
     """The method you tried to call cannot be called on non-CDN DCs"""
     ID = "UNKNOWN_METHOD"
@@ -340,4 +347,10 @@ class FileWriteFailed(InternalServerError):
     """``str``: RPC Error ID"""
     MESSAGE = __doc__
 
+
+class ChatFromCallChanged(InternalServerError):
+    """"""
+    ID = "CHAT_FROM_CALL_CHANGED"
+    """``str``: RPC Error ID"""
+    MESSAGE = __doc__
 
